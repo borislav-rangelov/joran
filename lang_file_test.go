@@ -1,4 +1,4 @@
-package joran
+package wut
 
 import (
 	"os"
@@ -21,7 +21,7 @@ email = 'Class email error'
 		t.Fatal(err)
 	}
 
-	file, err := ReadLangFile(filename)
+	file, err := ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,11 +71,11 @@ email = 'other error'
 		t.Fatal(err)
 	}
 
-	file, err := ReadLangFile(filename)
+	file, err := ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	file2, err := ReadLangFile(filename2)
+	file2, err := ReadFile(filename2)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package joran
+package wut
 
 import "strings"
 

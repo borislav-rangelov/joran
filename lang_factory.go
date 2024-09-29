@@ -1,14 +1,15 @@
-package joran
+package wut
 
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 type (
 	LangFactory interface {
-		ForLang(code string) LangSource
-		ForLangNoFallback(code string) LangSource
+		Lang(code string) LangSource
+		LangNoFallback(code string) LangSource
 	}
 
 	langFactory struct {
@@ -38,19 +39,21 @@ func NewLangFactory(tf TemplateFactory, files ...*LangFile) (LangFactory, error)
 	}, nil
 }
 
-func (l *langFactory) ForLang(code string) LangSource {
+func (l *langFactory) Lang(code string) LangSource {
+	code = strings.ToLower(code)
 	if configMap, ok := l.codeToConfig[code]; ok {
 		var parent LangSource
 		fallbackCode := l.fallbackMap[code]
 		if fallbackCode != "" {
-			parent = l.ForLang(fallbackCode)
+			parent = l.Lang(fallbackCode)
 		}
 		return NewLookupSource(parent, configMap)
 	}
 	return NewLookupSource(nil, make(ConfigMap))
 }
 
-func (l *langFactory) ForLangNoFallback(code string) LangSource {
+func (l *langFactory) LangNoFallback(code string) LangSource {
+	code = strings.ToLower(code)
 	if configMap, ok := l.codeToConfig[code]; ok {
 		return NewLookupSource(nil, configMap)
 	}

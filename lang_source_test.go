@@ -1,4 +1,4 @@
-package joran
+package wut
 
 import (
 	"errors"
@@ -17,30 +17,16 @@ func TestTranslations(t *testing.T) {
 
 	for _, test := range tests {
 		tryTranslateValidation(t, test)
-		translateValidation(t, test)
 	}
 }
 
 func tryTranslateValidation(t *testing.T, test testCase) {
-	translate, err := test.lookupSource.TryTranslate(test.message)
+	translate, err := test.lookupSource.Msg(test.message).OrErr()
 
 	if test.expectNotFound && !errors.Is(err, ErrTranslationNotFound) {
-		t.Errorf("TryTranslate(%#v) should have emitted not found error: %v", test.message, err)
+		t.Errorf("Msg(%#v) should have emitted not found error: %v", test.message, err)
 	} else if !test.expectNotFound && translate != test.translation {
-		t.Errorf("TryTranslate(%#v) should have returned '%s': %s", test.message, test.translation, translate)
-	}
-}
-
-func translateValidation(t *testing.T, test testCase) {
-	defer func() {
-		if r := recover(); r != nil && !test.expectNotFound {
-			t.Errorf("Translate(%#v) should have returned '%s' instead of panicing: %v", test.message, test.translation, r)
-		}
-	}()
-	translate := test.lookupSource.Translate(test.message)
-
-	if test.translation != translate {
-		t.Errorf("Translate(%#v) should have returned '%s': %s", test.message, test.translation, translate)
+		t.Errorf("Msg(%#v) should have returned '%s': %s", test.message, test.translation, translate)
 	}
 }
 
@@ -89,19 +75,19 @@ func testCases() []testCase {
 			message:     Msg("a.b"),
 			translation: "translation-a-b",
 		},
-		{ // goes to parent
+		{ // goes to fallback
 			lookupSource: NewLookupSource(
-				NewLookupSource(nil, ConfigMap{ // parent
+				NewLookupSource(nil, ConfigMap{ // fallback
 					"a": &KeyConfig{Configs: ConfigMap{
-						"b": &KeyConfig{Template: returnT("parent-a-b")}},
+						"b": &KeyConfig{Template: returnT("fallback-a-b")}},
 					},
-					"b": &KeyConfig{Template: returnT("parent-b")},
+					"b": &KeyConfig{Template: returnT("fallback-b")},
 				}),
 				ConfigMap{ // current
 					"b": &KeyConfig{Template: returnT("translation-b")},
 				}),
 			message:     Msg("a.b"),
-			translation: "parent-a-b",
+			translation: "fallback-a-b",
 		},
 	}
 }

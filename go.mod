@@ -1,4 +1,4 @@
-module github.com/borislav-rangelov/joran
+module github.com/borislav-rangelov/wut
 
 go 1.22
 

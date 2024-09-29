@@ -1,30 +1,41 @@
-package joran
+package wut
 
 import (
 	"errors"
 	"fmt"
-	toml "github.com/pelletier/go-toml/v2"
+	"github.com/pelletier/go-toml/v2"
 	"os"
+	"path"
 )
 
-type Values map[string]any
+type (
+	Values map[string]any
 
-type LangFile struct {
-	Language string
-	Fallback string
-	Values   Values
-}
+	LangFile struct {
+		Language string
+		Fallback string
+		Values   Values
+	}
+)
 
-func ReadLangFile(filename string) (*LangFile, error) {
+// ReadFile opens the file and reads the config from it.
+// Supported types: toml
+func ReadFile(filename string) (*LangFile, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	var values Values
-	if err = toml.Unmarshal(bytes, &values); err != nil {
+
+	values, err := readFile(filename, bytes)
+
+	if err != nil {
 		return nil, err
 	}
 
+	return ValuesToLangFile(values), nil
+}
+
+func ValuesToLangFile(values Values) *LangFile {
 	lang := getLanguage(&values)
 	fallback := getFallback(&values)
 
@@ -37,7 +48,24 @@ func ReadLangFile(filename string) (*LangFile, error) {
 		Language: lang,
 		Fallback: fallback,
 		Values:   values,
-	}, nil
+	}
+}
+
+func readFile(filename string, bytes []byte) (Values, error) {
+	switch path.Ext(filename) {
+	case ".toml":
+		return readToml(bytes)
+	default:
+		return nil, errors.New(fmt.Sprintf("file type not supported: %s", filename))
+	}
+}
+
+func readToml(bytes []byte) (Values, error) {
+	var values Values
+	if err := toml.Unmarshal(bytes, &values); err != nil {
+		return nil, err
+	}
+	return values, nil
 }
 
 func getLanguage(values *Values) string {

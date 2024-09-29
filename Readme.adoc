@@ -1,0 +1,73 @@
+= Wut - A simple i18n pack
+
+== Install
+
+[source,bash]
+go get github.com/borislav-rangelov/wut
+
+== Usage
+
+[source,toml]
+----
+# resources/i18n/en.toml
+language = "en"
+
+[dispay]
+hello = "Hello"
+hello_name = 'Hello, {{ .Name }}' # standard text/template format
+----
+
+[source,toml]
+----
+# resources/i18n/es.toml
+language = "es"
+fallback = "en"
+
+[display]
+hello = "Hola"
+----
+
+[source,go]
+--
+package main
+
+import (
+    "fmt"
+    "github.com/borislav-rangelov/wut"
+)
+
+type User struct{
+	Name string
+}
+
+func main() {
+    err := wut.Setup().
+	    AddFiles("./resources/i18n/en.toml",
+			"./resources/i18n/es.toml").
+		AsDefault()
+
+	if err != nil {
+		panic(err)
+	}
+
+	english := wut.Lang("en")
+	spanish := wut.Lang("es")
+
+	// "Hello"
+	fmt.Println(english.Get("display.hello").Txt)
+	// "Hola"
+	fmt.Println(spanish.Get("display.hello").Txt)
+
+	msg := english.Get("display.bye")
+	// ""
+	fmt.Println(msg.Txt)
+	// "Bye"
+	fmt.Println(msg.Or("Bye"))
+
+	user := User{Name: "Joran"}
+	templatedMsg := english.Get("display.hello_name", user)
+
+	// "Hello, Joran"
+	fmt.Println(templatedMsg.Txt)
+}
+--
