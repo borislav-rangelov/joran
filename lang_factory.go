@@ -65,7 +65,7 @@ func mergeLangFiles(files []*LangFile) (map[string]*LangFile, map[string]string,
 	fallbackMap := make(map[string]string)
 
 	for _, f := range files {
-		if fileMap[f.Language] == nil {
+		if _, ok := fileMap[f.Language]; !ok {
 			fileMap[f.Language] = f
 			fallbackMap[f.Language] = f.Fallback
 		} else {

@@ -61,7 +61,7 @@ func (l *LookupSource) Msg(m *Message) *Result {
 
 	return &Result{
 		Msg: m,
-		Txt: config.Template(m),
+		Txt: config.Template(m.Context),
 	}
 }
 

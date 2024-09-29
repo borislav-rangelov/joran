@@ -12,7 +12,7 @@ go get github.com/borislav-rangelov/wut
 # resources/i18n/en.toml
 language = "en"
 
-[dispay]
+[display]
 hello = "Hello"
 hello_name = 'Hello, {{ .Name }}' # standard text/template format
 ----
@@ -42,8 +42,8 @@ type User struct{
 
 func main() {
     err := wut.Setup().
-	    AddFiles("./resources/i18n/en.toml",
-			"./resources/i18n/es.toml").
+	    AddFiles("resources/i18n/en.toml",
+			"resources/i18n/es.toml").
 		AsDefault()
 
 	if err != nil {
@@ -64,10 +64,10 @@ func main() {
 	// "Bye"
 	fmt.Println(msg.Or("Bye"))
 
-	user := User{Name: "Joran"}
+	user := User{Name: "Wut"}
 	templatedMsg := english.Get("display.hello_name", user)
 
-	// "Hello, Joran"
+	// "Hello, Wut"
 	fmt.Println(templatedMsg.Txt)
 }
 --

@@ -1,0 +1,5 @@
+language = "es"
+fallback = "en"
+
+[display]
+hello = "Hola"

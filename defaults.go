@@ -51,7 +51,7 @@ func (o *options) Build() (LangFactory, error) {
 		factory = &DefaultTemplateFactory{}
 	}
 
-	parsedFiles := make([]*LangFile, len(o.files))
+	parsedFiles := make([]*LangFile, 0)
 	for _, file := range o.files {
 		langFile, err := ReadFile(file)
 		if err != nil {

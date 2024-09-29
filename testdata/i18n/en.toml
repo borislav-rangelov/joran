@@ -1,0 +1,5 @@
+language = "en"
+
+[display]
+hello = "Hello"
+hello_name = 'Hello, {{ .Name }}' # standard text/template format
