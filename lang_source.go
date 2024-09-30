@@ -11,6 +11,7 @@ type (
 	// LangSource searches for a translation to the given key
 	LangSource interface {
 		Get(key string, ctx ...any) *Result
+		GetFirst(key []string, ctx ...any) *Result
 		Msg(*Message) *Result
 	}
 
@@ -29,6 +30,7 @@ type (
 	Result struct {
 		Msg *Message
 		Txt string
+		Err error
 	}
 )
 
@@ -40,28 +42,44 @@ func NewLookupSource(parent LangSource, configs ConfigMap) *LookupSource {
 }
 
 func (l *LookupSource) Get(key string, ctx ...any) *Result {
-	if len(ctx) > 0 {
-		return l.Msg(MsgCtx(key, ctx[0]))
+	return l.Msg(Msg(key, ctx...))
+}
+
+func (l *LookupSource) GetFirst(keys []string, ctx ...any) *Result {
+	if len(keys) == 0 {
+		return emptyResult(Msg("<empty-key-provided>", ctx...))
 	}
-	return l.Msg(Msg(key))
+	for _, key := range keys {
+		r := l.Get(key, ctx...)
+		if r.HasTxt() {
+			return r
+		}
+	}
+	return emptyResult(Msg(keys[0], ctx...))
 }
 
 func (l *LookupSource) Msg(m *Message) *Result {
 	config := l.configs.findConfig(m.Key)
 
 	if config == nil || config.Template == nil {
-		if l.fallback != nil {
+		if !m.NoFallback && l.fallback != nil {
 			return l.fallback.Msg(m)
 		}
-		return &Result{
-			Msg: m,
-			Txt: "",
-		}
+		return emptyResult(m)
 	}
 
+	txt, err := config.Template(m.Context)
 	return &Result{
 		Msg: m,
-		Txt: config.Template(m.Context),
+		Txt: txt,
+		Err: err,
+	}
+}
+
+func emptyResult(m *Message) *Result {
+	return &Result{
+		Msg: m,
+		Txt: "",
 	}
 }
 
@@ -81,15 +99,26 @@ func (r *Result) Key() string {
 }
 
 func (r *Result) Or(other string) string {
-	if len(r.Txt) > 0 {
+	if r.HasTxt() {
 		return r.Txt
 	}
 	return other
 }
 
 func (r *Result) OrErr() (string, error) {
-	if len(r.Txt) > 0 {
+	if r.HasTxt() {
 		return r.Txt, nil
 	}
+	if r.HasError() {
+		return "", r.Err
+	}
 	return "", errors.Join(ErrTranslationNotFound, errors.New("Missing key: "+r.Key()))
+}
+
+func (r *Result) HasTxt() bool {
+	return len(r.Txt) > 0
+}
+
+func (r *Result) HasError() bool {
+	return r.Err != nil
 }

@@ -93,7 +93,7 @@ func testCases() []testCase {
 }
 
 func returnT(msg string) Template {
-	return func(ctx any) string {
-		return msg
+	return func(ctx any) (string, error) {
+		return msg, nil
 	}
 }

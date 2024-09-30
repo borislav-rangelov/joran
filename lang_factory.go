@@ -1,7 +1,9 @@
 package wut
 
 import (
+	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 )
@@ -9,12 +11,11 @@ import (
 type (
 	LangFactory interface {
 		Lang(code string) LangSource
-		LangNoFallback(code string) LangSource
 	}
 
 	langFactory struct {
-		codeToConfig map[string]ConfigMap
-		fallbackMap  map[string]string
+		sources     map[string]LangSource
+		emptySource *LookupSource
 	}
 )
 
@@ -25,39 +26,63 @@ func NewLangFactory(tf TemplateFactory, files ...*LangFile) (LangFactory, error)
 		return nil, err
 	}
 
-	configMaps := make(map[string]ConfigMap)
-	for k, file := range fileMap {
-		m, er := toConfigMap(file.Language, []string{k}, file.Values, tf)
+	sources, err := constructLangSourceChain(fallbackMap)
+
+	for code, file := range fileMap {
+		m, er := toConfigMap(file.Language, make([]string, 0), file.Values, tf)
 		if er != nil {
 			return nil, er
 		}
-		configMaps[k] = m
+		sources[code].(*LookupSource).configs = m
 	}
+
 	return &langFactory{
-		codeToConfig: configMaps,
-		fallbackMap:  fallbackMap,
+		sources:     sources,
+		emptySource: &LookupSource{fallback: nil, configs: make(ConfigMap)},
 	}, nil
+}
+
+func constructLangSourceChain(fallbackMap map[string]string) (map[string]LangSource, error) {
+	values := maps.Clone(fallbackMap)
+	valid := make(map[string]bool)
+	result := make(map[string]LangSource)
+
+	// a code->fallback is valid if there is no fallback ("")
+	// or the fallback was already verified
+
+	for {
+		initial := len(values)
+
+		for code, fallback := range values {
+
+			if fallback == "" || valid[fallback] {
+				valid[code] = true
+				delete(values, code)
+
+				ls := &LookupSource{}
+				if fallbackLS, ok := result[fallback]; ok {
+					ls.fallback = fallbackLS
+				}
+				result[code] = ls
+			}
+		}
+
+		left := len(values)
+		if left == 0 {
+			return result, nil
+		}
+		if left == initial {
+			return nil, errors.New(fmt.Sprintf("invalid fallback chain: %v", values))
+		}
+	}
 }
 
 func (l *langFactory) Lang(code string) LangSource {
 	code = strings.ToLower(code)
-	if configMap, ok := l.codeToConfig[code]; ok {
-		var parent LangSource
-		fallbackCode := l.fallbackMap[code]
-		if fallbackCode != "" {
-			parent = l.Lang(fallbackCode)
-		}
-		return NewLookupSource(parent, configMap)
+	if source, ok := l.sources[code]; ok {
+		return source
 	}
-	return NewLookupSource(nil, make(ConfigMap))
-}
-
-func (l *langFactory) LangNoFallback(code string) LangSource {
-	code = strings.ToLower(code)
-	if configMap, ok := l.codeToConfig[code]; ok {
-		return NewLookupSource(nil, configMap)
-	}
-	return NewLookupSource(nil, make(ConfigMap))
+	return l.emptySource
 }
 
 func mergeLangFiles(files []*LangFile) (map[string]*LangFile, map[string]string, error) {

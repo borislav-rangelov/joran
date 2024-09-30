@@ -8,7 +8,7 @@ import (
 
 type (
 	// Template transforms the given context into a string
-	Template func(ctx any) string
+	Template func(ctx any) (string, error)
 
 	// TemplateFactory provides templates based on the lang, key and value in the config
 	// This allows setting custom template resolving when needed
@@ -30,17 +30,17 @@ func (f *DefaultTemplateFactory) GetTemplate(lang string, path []string, entry s
 		if err != nil {
 			return nil, err
 		}
-		return func(ctx any) string {
+		return func(ctx any) (string, error) {
 			builder := &strings.Builder{}
 			err := tmpl.Execute(builder, ctx)
 			if err != nil {
-				return "<err:" + key + ">"
+				return "", err
 			}
-			return builder.String()
+			return builder.String(), nil
 		}, nil
 	}
 
-	return func(ctx any) string {
-		return entry
+	return func(ctx any) (string, error) {
+		return entry, nil
 	}, nil
 }

@@ -3,20 +3,15 @@ package wut
 import "strings"
 
 type Message struct {
-	Key     []string
-	Context any
+	Key        []string
+	NoFallback bool
+	Context    any
 }
 
-func Msg(key string) *Message {
-	return &Message{
-		Key:     strings.Split(key, "."),
-		Context: nil,
+func Msg(key string, ctx ...any) *Message {
+	path := strings.Split(key, ".")
+	if len(ctx) == 0 {
+		return &Message{Key: path, Context: nil}
 	}
-}
-
-func MsgCtx(key string, ctx any) *Message {
-	return &Message{
-		Key:     strings.Split(key, "."),
-		Context: ctx,
-	}
+	return &Message{Key: path, Context: ctx[0]}
 }

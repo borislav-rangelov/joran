@@ -24,10 +24,6 @@ func Lang(code string) LangSource {
 	return defaultFactory.Lang(code)
 }
 
-func LangNoFallback(code string) LangSource {
-	return defaultFactory.LangNoFallback(code)
-}
-
 func Setup() LoadOptions {
 	return &options{
 		templateFactory: nil,
