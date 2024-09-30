@@ -6,6 +6,8 @@ This library is a work-in-progress, and definitely not ready for production. Any
 
 This library's aim is to have a simple to use and upkeep i18n library. If possible, I'll try to prepare integrations with any popular validation frameworks and whatever else looks to be useful.
 
+https://github.com/borislav-rangelov/wut-val-go-pg[Go-Playground validation integration]
+
 == Install
 
 [source,bash]
