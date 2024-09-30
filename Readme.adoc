@@ -1,5 +1,11 @@
 = Wut - A simple i18n pack
 
+== Disclaimer
+
+This library is a work-in-progress, and definitely not ready for production. Anything can chance, tests need improvement and there are still no benchmarks.
+
+This library's aim is to have a simple to use and upkeep i18n library. If possible, I'll try to prepare integrations with any popular validation frameworks and whatever else looks to be useful.
+
 == Install
 
 [source,bash]
@@ -7,6 +13,7 @@ go get github.com/borislav-rangelov/wut
 
 == Usage
 
+Firstly, prepare some translations
 [source,toml]
 ----
 # resources/i18n/en.toml
@@ -25,7 +32,10 @@ fallback = "en"
 
 [display]
 hello = "Hola"
+hello_template = '{{ get "display.hello" }}, {{ .Name }}' #Keep in mind that 'get' will use the language of the template it was being used in as the starting one and needs the default lang factory to be set up.
 ----
+
+Then, use the `wut.Setup()` builder to configure the library (easiest approach).
 
 [source,go]
 --
@@ -71,3 +81,8 @@ func main() {
 	fmt.Println(templatedMsg.Txt)
 }
 --
+
+Easiest config is to use `wut.Setup().AsDefault()` in the main application.
+When testing, you can use `wut.SetDefaultFactory()` to prepare something for the test. If I have the time, I'll try to make a version, which is easier to test with.
+
+If there are issues, pass in the `LangFactory`, or `LangSource` to the specific methods.

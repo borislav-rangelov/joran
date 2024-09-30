@@ -3,3 +3,4 @@ fallback = "en"
 
 [display]
 hello = "Hola"
+hello_template = '{{ get "display.hello" }}, {{ .Name }}'

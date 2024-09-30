@@ -40,11 +40,16 @@ func TestSetup(t *testing.T) {
 		t.Errorf("english.Get(\"display.bye\").Txt != \"Bye\"")
 	}
 
-	user := user{Name: "Wut"}
-	templatedMsg := english.Get("display.hello_name", user)
+	u := user{Name: "Wut"}
+	templatedMsg := english.Get("display.hello_name", u)
 
 	// "Hello, Wut"
 	if templatedMsg.Txt != "Hello, Wut" {
 		t.Errorf("templatedMsg.Txt != \"Hello, Wut\" but was %s", templatedMsg.Txt)
+	}
+
+	templatedGetMsg := spanish.Get("display.hello_template", u)
+	if templatedGetMsg.Txt != "Hola, Wut" {
+		t.Errorf("templatedGetMsg.Txt != \"Hola, Wut\" but was %s", templatedGetMsg.Txt)
 	}
 }

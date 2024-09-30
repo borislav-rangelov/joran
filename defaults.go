@@ -2,9 +2,21 @@ package wut
 
 type (
 	LoadOptions interface {
+
+		// TemplateFactory sets which factory will provide the templates
+		// that will be returned in the end. Default is DefaultTemplateFactory
 		TemplateFactory(tf TemplateFactory) LoadOptions
+
+		// AddFiles accepts a list of files to be parsed.
+		// They need to at least have the language property defined in them.
+		// If adding multiple files for the same language, their fallback language MUST match.
+		// The 'language' and 'fallback' settings could be moved to a separate file in the future.
 		AddFiles(file ...string) LoadOptions
+
+		// AsDefault sets the configured factory from Build as the default factory to be used by the global methods available
 		AsDefault() error
+
+		// Build configures and returns the lang factory
 		Build() (LangFactory, error)
 	}
 

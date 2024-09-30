@@ -26,7 +26,11 @@ func (f *DefaultTemplateFactory) GetTemplate(lang string, path []string, entry s
 
 	if strings.Contains(entry, "{{") {
 		key := fmt.Sprintf("[%s]%s", lang, strings.Join(path, "."))
-		tmpl, err := template.New(key).Parse(entry)
+		tmpl, err := template.New(key).
+			Funcs(template.FuncMap{"get": func(key string, ctx ...any) (string, error) {
+				return Lang(lang).Get(key, ctx...).OrErr()
+			}}).
+			Parse(entry)
 		if err != nil {
 			return nil, err
 		}
